@@ -199,7 +199,6 @@
   width: 100%;
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 5px;
 }
 
 .anime-page .relations-section h2 {
@@ -217,40 +216,35 @@
   margin-left: 25px;
 }
 
-.anime-page .relations-section .relations .relation-entry {
+.anime-page .relations-section .relation-entry {
   position: relative;
   display: flex;
+  cursor: pointer;
   width: 200px;
   height: 100px;
-  align-items: center;
   overflow: hidden;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
 }
 
-.anime-page .relations-section .relations .relation-entry .relation-cover {
+.anime-page .relations-section .relation-entry:hover {
+  transform: scale(1.05);
+}
+
+.anime-page .relations-section .relation-entry .relation-cover {
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
+  opacity: 0.5;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  border-radius: var(--border-radius);
-}
-
-.anime-page .relations-section .relations .relation-entry .relation-cover::before {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  backdrop-filter: blur(2px);
-  background-color: rgba(0, 0, 0, 0.5);
   border-radius: inherit;
+  transition: var(--transition);
 }
 
-.anime-page .relations-section .relations .relation-entry .relation-content {
+.anime-page .relations-section .relation-entry .relation-content {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -260,14 +254,14 @@
   text-align: center;
 }
 
-.anime-page .relations-section .relations .relation-entry .relation-content .type {
+.anime-page .relations-section .relation-entry .relation-content .type {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
   font-size: 1.5em;
   font-weight: bold;
   margin-bottom: 2.5px;
 }
 
-.anime-page .relations-section .relations .relation-entry .relation-content .title {
+.anime-page .relations-section .relation-entry .relation-content .title {
   color: var(--font-3);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
   font-size: 0.9em;
