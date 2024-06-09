@@ -21,10 +21,13 @@ import { getUniversalEpisodeUrl } from '../../../modules/providers/api';
 import {
   capitalizeFirstLetter,
   getParsedFormat,
-  getParsedMeanScore,
   getParsedSeasonYear,
   getTitle,
   getUrlByCoverType,
+  isAnimeAvailable,
+  hasStartDate,
+  getParsedStartDate,
+  getParsedRelationEdges
 } from '../../../modules/utils';
 import { ListAnimeData } from '../../../types/anilistAPITypes';
 import { EpisodeInfo } from '../../../types/types';
@@ -38,8 +41,10 @@ import {
   AnimeModalStatus,
   AnimeModalWatchButtons,
 } from './AnimeModalElements';
+import RelationsSection from './RelationsSection';
 import EpisodesSection from './EpisodesSection';
 import { ModalPage, ModalPageShadow } from './Modal';
+import { FuzzyDate, MediaRelationEdge, MediaRelations } from '../../../types/anilistGraphQLTypes';
 
 const modalsRoot = document.getElementById('modals-root');
 const STORE = new Store();
@@ -54,7 +59,7 @@ interface AnimeModalProps {
 const AnimeModal: React.FC<AnimeModalProps> = ({
   listAnimeData,
   show,
-  onClose,
+  onClose
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const trailerRef = useRef<HTMLVideoElement>(null);
@@ -65,8 +70,7 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
   const [canRePlayTrailer, setCanRePlayTrailer] = useState<boolean>(false);
 
   // episodes info
-  const [episodesInfoHasFetched, setEpisodesInfoHasFetched] =
-    useState<boolean>(false);
+  const [episodesInfoHasFetched, setEpisodesInfoHasFetched] = useState<boolean>(false);
   const [episodesInfo, setEpisodesInfo] = useState<EpisodeInfo[]>();
 
   // player
@@ -84,15 +88,12 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
   }, []);
 
   useEffect(() => {
-    if(!showPlayer) {
-      setPlayerIVideo(null)
-    }
-  }, [showPlayer])
+    if (!showPlayer) setPlayerIVideo(null);
+  }, [showPlayer]);
 
   useEffect(() => {
     try {
-      if (show && trailerRef.current && canRePlayTrailer)
-        trailerRef.current.play();
+      if (show && trailerRef.current && canRePlayTrailer) trailerRef.current.play();
       setTrailerVolumeOn(STORE.get('trailer_volume_on') as boolean);
     } catch (error) {
       console.log(error);
@@ -112,9 +113,7 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
 
   // close modal by clicking shadow area
   const handleClickOutside = (event: any) => {
-    if (!modalRef.current?.contains(event.target as Node)) {
-      closeModal();
-    }
+    if (!modalRef.current?.contains(event.target as Node)) closeModal();
   };
 
   const fetchEpisodesInfo = async () => {
@@ -122,16 +121,14 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
       if (data.data && data.data.episodes) setEpisodesInfo(data.data.episodes);
       data.data.images &&
         setAlternativeBanner(
-          getUrlByCoverType(data.data.images, 'fanart') ?? undefined,
+          getUrlByCoverType(data.data.images, 'fanart') ?? undefined
         );
       setEpisodesInfoHasFetched(true);
     });
   };
 
   const handleTrailerPlay = () => {
-    if (trailerRef.current) {
-      trailerRef.current.volume = trailerVolumeOn ? 1 : 0;
-    }
+    if (trailerRef.current) trailerRef.current.volume = trailerVolumeOn ? 1 : 0;
   };
 
   const handleTrailerLoad = () => {
@@ -143,18 +140,14 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
     }
   };
 
-  const handleTrailerError = () => {
-    setTrailer(false);
-  };
+  const handleTrailerError = () => setTrailer(false);
 
   const toggleTrailerVolume = () => {
+    if (!trailerRef.current) return;
     const volumeOn = !trailerVolumeOn;
-
-    if (trailerRef.current) {
-      trailerRef.current.volume = volumeOn ? 1 : 0;
-      setTrailerVolumeOn(volumeOn);
-      STORE.set('trailer_volume_on', volumeOn);
-    }
+    trailerRef.current.volume = volumeOn ? 1 : 0;
+    setTrailerVolumeOn(volumeOn);
+    STORE.set('trailer_volume_on', volumeOn);
   };
 
   const playEpisode = async (episode: number) => {
@@ -165,28 +158,22 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
 
     getUniversalEpisodeUrl(listAnimeData, episode).then((data) => {
       if (!data) {
-        toast(`Source not found.`, {
+        toast('Source not found.', {
           style: {
             color: style.getPropertyValue('--font-2'),
-            backgroundColor: style.getPropertyValue('--color-3'),
+            backgroundColor: style.getPropertyValue('--color-3')
           },
-          icon: '❌',
+          icon: '❌'
         });
-        setLoading(false);
 
-        return;
+        return setLoading(false);
       }
       setPlayerIVideo(data);
     });
   };
 
-  const handleLocalProgressChange = (localProgress: number) => {
-    setLocalProgress(localProgress);
-  };
-
-  const handleChangeLoading = (value: boolean) => {
-    setLoading(value);
-  };
+  const handleLocalProgressChange = (localProgress: number) => setLocalProgress(localProgress);
+  const handleChangeLoading = (value: boolean) => setLoading(value);
 
   const handlePlayerClose = () => {
     try {
@@ -196,6 +183,16 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
       console.log(error);
     }
   };
+
+  const getStartDate = () => {
+    let reversedStartDate = Object.values(getParsedStartDate(listAnimeData.media.startDate as FuzzyDate) as string[]).reverse();
+    if (reversedStartDate.length === 3) {
+      const [day, month, year] = reversedStartDate;
+      reversedStartDate = [month, day, year];
+    }
+
+    return reversedStartDate.join(' ');
+  }
 
   return ReactDOM.createPortal(
     <>
@@ -241,9 +238,7 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
 
               {trailer && (
                 <div
-                  className={`trailer-wrapper ${
-                    canRePlayTrailer ? 'show-opacity' : ''
-                  }`}
+                  className={`trailer-wrapper ${canRePlayTrailer ? 'show-opacity' : ''}`}
                 >
                   <video
                     ref={trailerRef}
@@ -286,14 +281,16 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
                       Adults
                     </li>
                   )}
-                  <li style={{ color: '#e5a639' }}>
-                    <FontAwesomeIcon
-                      className="i"
-                      icon={faStar}
-                      style={{ marginRight: 7 }}
-                    />
-                    {getParsedMeanScore(listAnimeData.media)}%
-                  </li>
+                  {listAnimeData.media.meanScore && (
+                    <li style={{ color: '#e5a639' }}>
+                      <FontAwesomeIcon
+                        className="i"
+                        icon={faStar}
+                        style={{ marginRight: 7 }}
+                      />
+                      {listAnimeData.media.meanScore}%
+                    </li>
+                  )}
                   <AnimeModalStatus status={listAnimeData.media.status} />
                   <li>
                     <FontAwesomeIcon
@@ -309,31 +306,45 @@ const AnimeModal: React.FC<AnimeModalProps> = ({
               </div>
               <div className="right">
                 <p className="additional-info">
-                  {'Released on: '}
-                  <span>
-                    {capitalizeFirstLetter(listAnimeData.media.season ?? '?')}{' '}
-                    {getParsedSeasonYear(listAnimeData.media)}
-                  </span>
+                  {hasStartDate(listAnimeData.media) && (
+                    <>
+                      {'Start date: '}
+                      <span>{getStartDate()}</span>
+                      <p/>
+                    </>
+                  )}
+                  {listAnimeData.media.season && (
+                    <>
+                      {'Released on: '}
+                      <span>
+                        {capitalizeFirstLetter(listAnimeData.media.season)}{' '}
+                        {getParsedSeasonYear(listAnimeData.media)}
+                      </span>
+                    </>
+                  )}
+                  {listAnimeData.media.genres && <AnimeModalGenres genres={listAnimeData.media.genres} />}
+                  {listAnimeData.media.synonyms && <AnimeModalOtherTitles synonyms={listAnimeData.media.synonyms} />}
                 </p>
-                <AnimeModalGenres genres={listAnimeData.media.genres ?? []} />
-                <AnimeModalOtherTitles
-                  synonyms={listAnimeData.media.synonyms ?? []}
-                />
               </div>
             </div>
-            <EpisodesSection
-              episodesInfo={episodesInfo}
-              episodesInfoHasFetched={episodesInfoHasFetched}
-              listAnimeData={listAnimeData}
-              loading={loading}
-              onPlay={playEpisode}
-            />
+            {(listAnimeData.media.relations?.edges && getParsedRelationEdges(listAnimeData.media.relations).length > 0) && (
+              <RelationsSection relations={listAnimeData.media.relations} />
+            )}
+            {isAnimeAvailable(listAnimeData.media) && (
+              <EpisodesSection
+                episodesInfo={episodesInfo}
+                episodesInfoHasFetched={episodesInfoHasFetched}
+                listAnimeData={listAnimeData}
+                loading={loading}
+                onPlay={playEpisode}
+              />
+            )}
           </div>
         </div>
       </ModalPage>
       <Toaster />
     </>,
-    modalsRoot!,
+    modalsRoot!
   );
 };
 

@@ -15,22 +15,26 @@ export type MediaFormat =
   | 'MUSIC'
   | 'MANGA'
   | 'NOVEL'
-  | 'ONE_SHOT'
+  | 'ONE_SHOT';
 
 export type MediaStatus =
   | 'FINISHED'
   | 'RELEASING'
   | 'NOT_YET_RELEASED'
   | 'CANCELLED'
-  | 'HIATUS'
+  | 'HIATUS';
 
 export type FuzzyDate = {
   year?: number;
-  month?: number;
+  month?: number | string;
   day?: number;
 };
 
-export type MediaSeason = 'WINTER' | 'SPRING' | 'SUMMER' | 'FALL'
+export type MediaSeason =
+  | 'WINTER'
+  | 'SPRING'
+  | 'SUMMER'
+  | 'FALL';
 
 export type MediaCoverImage = {
   extraLarge?: string;
@@ -54,7 +58,7 @@ export type MediaListStatus =
   | 'COMPLETED'
   | 'DROPPED'
   | 'PAUSED'
-  | 'REPEATING'
+  | 'REPEATING';
 
 export type MediaList = {
   id: number;
@@ -75,6 +79,37 @@ export type PageInfo = {
   currentPage: number;
   hasNextPage: number;
 };
+
+export type MediaRelationType = 
+  | 'ADAPTATION'
+  | 'PREQUEL'
+  | 'SEQUEL'
+  | 'PARENT'
+  | 'SIDE_STORY'
+  | 'CHARACTER'
+  | 'SUMMARY'
+  | 'ALTERNATIVE'
+  | 'SPIN_OFF'
+  | 'OTHER';
+
+export interface MediaNode {
+  id: number;
+  title: MediaTitle;
+  format: string;
+  type: string;
+  status: string;
+  coverImage: MediaCoverImage;
+  bannerImage: string | null;
+}
+
+export interface MediaRelationEdge {
+  relationType: MediaRelationType;
+  node: MediaNode;
+}
+
+export interface MediaRelations {
+  edges: MediaRelationEdge[];
+}
 
 export type Media = {
   id?: number;
@@ -101,4 +136,5 @@ export type Media = {
   mediaListEntry?: MediaList;
   siteUrl?: string;
   trailer?: MediaTrailer;
+  relations?: MediaRelations;
 };

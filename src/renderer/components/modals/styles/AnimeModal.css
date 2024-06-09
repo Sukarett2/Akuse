@@ -102,7 +102,7 @@
   display: flex;
   gap: 50px;
   width: calc(100% - 50px);
-  margin: 0 25px 25px 25px;
+  margin: 0 25px 0 25px;
   border-radius: var(--border-radius);
 }
 
@@ -124,13 +124,14 @@
   /* font-size: 2.6vw; */
   font-size: 2.8rem;
   font-weight: 800;
-  margin-bottom: 5px;
+  line-height: 0.9;
+  margin: 0 0 10px;
 }
 
 .anime-page ul.info {
   display: flex;
   gap: 20px;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
   padding-left: 0;
   color: var(--font-3);
   font-size: 1.1rem;
@@ -187,10 +188,90 @@
   font-size: 1rem;
   color: var(--font-3);
   line-height: 24px;
+  margin-top: 10px;
 }
 
 .anime-page .content .additional-info span {
   color: var(--font-2);
+}
+
+.anime-page .relations-section {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.anime-page .relations-section h2 {
+  display: flex;
+  position: relative;
+  width: calc(100% - 50px);
+  margin: 0 25px 15px 25px;
+  font-size: 1.6rem;
+}
+
+.anime-page .relations-section .relations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin-left: 25px;
+}
+
+.anime-page .relations-section .relations .relation-entry {
+  position: relative;
+  display: flex;
+  width: 200px;
+  height: 100px;
+  align-items: center;
+  overflow: hidden;
+}
+
+.anime-page .relations-section .relations .relation-entry .relation-cover {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: var(--border-radius);
+}
+
+.anime-page .relations-section .relations .relation-entry .relation-cover::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(2px);
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: inherit;
+}
+
+.anime-page .relations-section .relations .relation-entry .relation-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  padding: 10px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.anime-page .relations-section .relations .relation-entry .relation-content .type {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 2.5px;
+}
+
+.anime-page .relations-section .relations .relation-entry .relation-content .title {
+  color: var(--font-3);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: 0.9em;
+  font-weight: bold;
 }
 
 .anime-page .episodes-section {
@@ -253,7 +334,6 @@
   color: var(--font-2);
   transition: var(--transition);
 }
-
 
 .anime-page .episodes-section .episodes-options h2 {
   font-size: 1.6rem;
@@ -399,4 +479,42 @@
 
 .anime-page button.exit:hover {
   color: var(--font-1);
+}
+
+.container {
+  position: relative;
+  width: 300px; /* Adjust width as needed */
+  height: 200px; /* Adjust height as needed */
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.relation-type {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.media-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 16px;
+  text-align: center;
+  display: none;
+}
+
+.container:hover .media-title {
+  display: block;
 }

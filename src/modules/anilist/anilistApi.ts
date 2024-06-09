@@ -23,62 +23,83 @@ const HEADERS: Object = {
   Accept: 'application/json',
 };
 const MEDIA_DATA: string = `
+  id
+  title {
+    romaji
+    english
+    native
+    userPreferred
+  }
+  format
+  status
+  description
+  startDate {
+    year
+    month
+    day
+  }
+  endDate {
+    year
+    month
+    day
+  }
+  season
+  seasonYear
+  episodes
+  duration
+  coverImage {
+    large
+    extraLarge
+    color
+  }
+  bannerImage
+  genres
+  synonyms
+  averageScore
+  meanScore
+  popularity
+  favourites
+  isAdult
+  nextAiringEpisode {
+    id
+    timeUntilAiring
+    episode
+  }
+  mediaListEntry {
+    id
+    mediaId
+    status
+    score(format:POINT_10)
+    progress
+  }
+  siteUrl
+  trailer {
+    id
+    site
+    thumbnail
+  }
+  relations {
+    edges {
+      relationType
+      node {
         id
         title {
-            romaji
-            english
-            native
-            userPreferred
+          romaji
+          english
+          native
+          userPreferred
         }
         format
+        type
         status
-        description
-        startDate {
-            year
-            month
-            day
-        }
-        endDate {
-            year
-            month
-            day
-        }
-        season
-        seasonYear
-        episodes
-        duration
         coverImage {
-            large
-            extraLarge
-            color
+          large
         }
         bannerImage
-        genres
-        synonyms
-        averageScore
-        meanScore
-        popularity
-        favourites
-        isAdult
-        nextAiringEpisode {
-            id
-            timeUntilAiring
-            episode
-        }
-        mediaListEntry {
-            id
-            mediaId
-            status
-            score(format:POINT_10)
-            progress
-        }
-        siteUrl
-        trailer {
-            id
-            site
-            thumbnail
-        }
-    `;
+      }
+    }
+  }
+`;
 
 /**
  * Retrieves the access token for the api

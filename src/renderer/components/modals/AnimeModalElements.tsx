@@ -29,6 +29,7 @@ import {
   getProgress,
   getTimeUntilAiring,
   parseDescription,
+  isAnimeAvailable
 } from '../../../modules/utils';
 import { ListAnimeData } from '../../../types/anilistAPITypes';
 import { MediaStatus } from '../../../types/anilistGraphQLTypes';
@@ -36,7 +37,7 @@ import { AuthContext } from '../../App';
 import { ButtonCircle, ButtonLoading, ButtonMain } from '../Buttons';
 import {
   deleteAnimeFromList,
-  updateAnimeFromList,
+  updateAnimeFromList
 } from '../../../modules/anilist/anilistApi';
 
 interface AnimeModalStatusProps {
@@ -44,7 +45,7 @@ interface AnimeModalStatusProps {
 }
 
 export const AnimeModalStatus: React.FC<AnimeModalStatusProps> = ({
-  status,
+  status
 }) => {
   const style = getComputedStyle(document.body);
   const parsedStatus = getParsedStatus(status);
@@ -100,7 +101,7 @@ interface AnimeModalGenresProps {
 }
 
 export const AnimeModalGenres: React.FC<AnimeModalGenresProps> = ({
-  genres,
+  genres
 }) => {
   return (
     <p className="additional-info">
@@ -120,7 +121,7 @@ interface AnimeModalOtherTitlesProps {
 }
 
 export const AnimeModalOtherTitles: React.FC<AnimeModalOtherTitlesProps> = ({
-  synonyms,
+  synonyms
 }) => {
   return (
     <p className="additional-info">
@@ -140,14 +141,15 @@ interface AnimeModalEpisodesProps {
 }
 
 export const AnimeModalEpisodes: React.FC<AnimeModalEpisodesProps> = ({
-  listAnimeData,
+  listAnimeData
 }) => {
   const format = getParsedFormat(listAnimeData.media.format);
   const duration = listAnimeData.media.duration;
-  const status = getParsedStatus(listAnimeData.media.status);
   const availableEpisodes = getAvailableEpisodes(listAnimeData.media);
+  const status = getParsedStatus(listAnimeData.media.status);
+  const episodes = listAnimeData.media.episodes;
 
-  return (
+  return isAnimeAvailable(listAnimeData.media) && (
     <li>
       {format === 'Movie' ? (
         <>
@@ -166,8 +168,7 @@ export const AnimeModalEpisodes: React.FC<AnimeModalEpisodesProps> = ({
             style={{ marginRight: 7 }}
           />
           {availableEpisodes || '?'}{' '}
-          {status === 'Releasing' &&
-            ` / ${listAnimeData.media.episodes || '?'}`}{' '}
+          {(status === 'Releasing' && episodes) ? ` / ${episodes}` : ''}{' '}
           Episodes
         </>
       )}
@@ -180,25 +181,21 @@ interface AnimeModalDescriptionProps {
 }
 
 export const AnimeModalDescription: React.FC<AnimeModalDescriptionProps> = ({
-  listAnimeData,
+  listAnimeData
 }) => {
   const descriptionRef = useRef<HTMLDivElement>(null);
 
   const [fullText, setFullText] = useState<boolean>(false);
   const [ellipsis, setEllpisis] = useState<boolean>(false);
 
-  const handleToggleFullText = () => {
-    setFullText(!fullText);
-  };
+  const handleToggleFullText = () => setFullText(!fullText);
 
   const isEllipsisActive = () =>
-    descriptionRef.current?.scrollHeight! >
+    descriptionRef.current?.scrollHeight!
     descriptionRef.current?.clientHeight!;
 
   useEffect(() => {
-    setTimeout(() => {
-      isEllipsisActive();
-    }, 100);
+    setTimeout(() => isEllipsisActive(), 100);
   });
 
   return (
@@ -209,8 +206,8 @@ export const AnimeModalDescription: React.FC<AnimeModalDescriptionProps> = ({
         onClick={handleToggleFullText}
         dangerouslySetInnerHTML={{
           __html: DOMPurify.sanitize(
-            parseDescription(listAnimeData.media.description ?? ''),
-          ),
+            parseDescription(listAnimeData.media.description ?? '')
+          )
         }}
       ></div>
       <span></span>
@@ -254,13 +251,11 @@ export const AnimeModalWatchButtons: React.FC<AnimeModalWatchButtonsProps> = ({
   listAnimeData,
   localProgress,
   onPlay,
-  loading = false,
+  loading = false
 }) => {
   const logged = useContext(AuthContext);
 
-  const [progress, setProgress] = useState<number | undefined>(
-    getProgress(listAnimeData.media),
-  );
+  const [progress, setProgress] = useState<number | undefined>(getProgress(listAnimeData.media));
 
   // const progress = getProgress(listAnimeData.media);
   const episodes = getEpisodes(listAnimeData.media);
@@ -273,7 +268,7 @@ export const AnimeModalWatchButtons: React.FC<AnimeModalWatchButtonsProps> = ({
 
   return logged ? (
     <div className="watch-buttons">
-      {listAnimeData.media.status !== 'NOT_YET_RELEASED' && (
+      {isAnimeAvailable(listAnimeData.media) && (
         <>
           {progress === 0 && (
             <ButtonMain
@@ -339,31 +334,21 @@ interface IsInListButtonProps {
 }
 
 export const IsInListButton: React.FC<IsInListButtonProps> = ({
-  listAnimeData,
+  listAnimeData
 }) => {
   const [inList, setInList] = useState<boolean>(false);
-  const [listId, setListId] = useState<number | undefined>(
-    listAnimeData.media.mediaListEntry?.id,
-  );
+  const [listId, setListId] = useState<number | undefined>(listAnimeData.media.mediaListEntry?.id);
 
-  const removeFromList = () => {
-    deleteAnimeFromList(listId).then((deleted) => {
-      if (deleted) setInList(false);
+  const removeFromList = () => deleteAnimeFromList(listId).then(deleted => deleted && setInList(false));
+
+  const addToList = () =>
+    updateAnimeFromList(listAnimeData.media.id, 'PLANNING').then(data => {
+      if (!data) return;
+      setListId(data);
+      setInList(true);
     });
-  };
 
-  const addToList = () => {
-    updateAnimeFromList(listAnimeData.media.id, 'PLANNING').then((data) => {
-      if (data) {
-        setListId(data);
-        setInList(true);
-      }
-    });
-  };
-
-  useEffect(() => {
-    setInList(!!listAnimeData.media.mediaListEntry);
-  }, []);
+  useEffect(() => setInList(!!listAnimeData.media.mediaListEntry), []);
 
   return inList ? (
     <ButtonCircle

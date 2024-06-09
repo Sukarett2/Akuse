@@ -1,11 +1,11 @@
 import Store from 'electron-store';
 
 import { AnimeData, ListAnimeData } from '../types/anilistAPITypes';
-import { Media, MediaFormat, MediaStatus } from '../types/anilistGraphQLTypes';
+import { Media, MediaFormat, MediaStatus, FuzzyDate, MediaRelationType, MediaRelations, MediaRelationEdge } from '../types/anilistGraphQLTypes';
 import { animeCustomTitles } from '../modules/animeCustomTitles';
 
 const STORE = new Store();
-const MONTHS = {
+const MONTHS: { [key: string]: string } = {
   '1': 'January',
   '2': 'February',
   '3': 'March',
@@ -27,6 +27,19 @@ const MONTHS = {
   '10': 'October',
   '11': 'November',
   '12': 'December',
+};
+const UNAVAILABLE_STATUSES = ['Unreleased', 'Cancelled', 'Discontinued'];
+const RELATION_TYPES: { [key in MediaRelationType]: string } = {
+  ADAPTATION: 'Adaptation',
+  PREQUEL: 'Prequel',
+  SEQUEL: 'Sequel',
+  PARENT: 'Parent Story',
+  SIDE_STORY: 'Side Story',
+  CHARACTER: 'Character',
+  SUMMARY: 'Summary',
+  ALTERNATIVE: 'Alternative Version',
+  SPIN_OFF: 'Spin-off',
+  OTHER: 'Other'
 };
 
 export const animeDataToListAnimeData = (
@@ -155,14 +168,8 @@ export const getProgress = (animeEntry: Media): number | undefined =>
  * @param {*} animeEntry
  * @returns
  */
-export const isAnimeAvailable = (animeEntry: Media) => {
-  if (!animeEntry.status) return false;
-
-  return (
-    getParsedStatus(animeEntry.status) == 'Unreleased' ||
-    getParsedStatus(animeEntry.status) == 'Cancelled'
-  );
-};
+export const isAnimeAvailable = (animeEntry: Media): boolean =>
+  animeEntry.status ? UNAVAILABLE_STATUSES.indexOf(getParsedStatus(animeEntry.status)) === -1 : false;
 
 /**
  * Returns an object containing how much time remains before the next episode airs
@@ -245,7 +252,7 @@ export const getParsedStatus = (status: MediaStatus | undefined) => {
 /**
  * Parses anime format into a better human-readable name
  *
- * @param {*} status
+ * @param {*} format
  * @returns
  */
 export const getParsedFormat = (format: MediaFormat | undefined) => {
@@ -336,6 +343,49 @@ export const getParsedAnimeTitles = (animeEntry: Media): string[] => {
 
   return animeTitles;
 };
+
+/**
+ * Checks if the given anime entry has a start date.
+ *
+ * @param {Media} animeEntry The anime entry to check.
+ * @returns {boolean} True if the anime has a start date, false otherwise.
+ */
+export const hasStartDate = (animeEntry: Media): boolean =>
+  !!animeEntry.startDate && Object.values(animeEntry.startDate).some(value => value);
+
+/**
+ * Parses the start date.
+ *
+ * @param {FuzzyDate} startDate The start date to parse.
+ * @returns {FuzzyDate} The parsed start date with month, if found, represented as a word.
+ */
+export const getParsedStartDate = (startDate: FuzzyDate): FuzzyDate => {
+  const parsedStartDate: Partial<FuzzyDate> = {};
+
+  parsedStartDate.year = startDate.year;
+  if (startDate.month) parsedStartDate.month = MONTHS[startDate.month.toString()];
+  if (startDate.day) parsedStartDate.day = startDate.day;
+
+  return parsedStartDate;
+};
+
+/**
+ * Filters relations to include only those where the node type is 'ANIME'.
+ * 
+ * @param {MediaRelations} relations The relations to filter.
+ * @returns {MediaRelationEdge[]} Relation edges with only 'ANIME' nodes.
+ */
+export const getParsedRelationEdges = (relations: MediaRelations): MediaRelationEdge[] =>
+  relations.edges.filter(({ node }) => node.type === 'ANIME');
+
+/**
+ * Parses relation type to a more human-readable string.
+ * 
+ * @param {MediaRelationType} relationType The relation type to parse.
+ * @returns {string} The human-readable relation type.
+ */
+export const getParsedRelationType = (relationType: MediaRelationType): string =>
+  RELATION_TYPES[relationType];
 
 export const formatTime = (time: number) => {
   let seconds: any = Math.floor(time % 60),
