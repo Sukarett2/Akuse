@@ -76,7 +76,7 @@ const AnimeSection: React.FC<AnimeSectionProps> = ({ title, animeData }) => {
           {(animeData ? animeData : Array(20).fill(undefined)).map(
             (listAnimeData, index) => (
               <AnimeEntry key={index} listAnimeData={listAnimeData} />
-            ),
+            )
           )}
         </div>
       </div>

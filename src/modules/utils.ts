@@ -1,7 +1,7 @@
 import Store from 'electron-store';
 
 import { AnimeData, ListAnimeData } from '../types/anilistAPITypes';
-import { Media, MediaFormat, MediaStatus, FuzzyDate, MediaRelationType, MediaRelations, MediaRelationEdge } from '../types/anilistGraphQLTypes';
+import { Media, MediaFormat, MediaStatus, FuzzyDate, MediaRelationType, MediaRelations, MediaRelationEdge, MediaNode } from '../types/anilistGraphQLTypes';
 import { animeCustomTitles } from '../modules/animeCustomTitles';
 
 const STORE = new Store();
@@ -69,7 +69,7 @@ export const animeDataToListAnimeData = (
  * @param {*} animeEntry
  * @returns title
  */
-export const getTitle = (animeEntry: Media): string => {
+export const getTitle = (animeEntry: Media | MediaNode): string => {
   if (!animeEntry.title) return '';
 
   if (animeEntry.title.english) {
